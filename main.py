@@ -1,4 +1,3 @@
-from xml.dom.pulldom import CHARACTERS
 from pyvndbhttp import VNDBQuery, And, Filter, QType, Or
 import json
 
