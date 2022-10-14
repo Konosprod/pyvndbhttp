@@ -1,6 +1,7 @@
 import requests
 import json
 from enum import Enum
+import copy
 
 class QType(Enum):
     VN = "vn"
@@ -8,16 +9,44 @@ class QType(Enum):
     PRODUCER = "producer"
     CHARACTER = "character"
     STAFF = "staff"
-       
-class DbQuery():
 
+def pretty_print_POST(req):
+    """
+    At this point it is completely built and ready
+    to be fired; it is "prepared".
+
+    However pay attention at the formatting used in 
+    this function because it is programmed to be pretty 
+    printed and may differ from the actual request.
+    """
+    print('{}\n{}\r\n{}\r\n\r\n{}'.format(
+        '-----------START-----------',
+        req.method + ' ' + req.url,
+        '\r\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
+        req.body,
+    ))
+
+class VNDBQuery():
+    """
+    Interracts with the vndb API via HTTP. Works like a SQL query builder
+    """
     def __init__(self):
         self._api_url = "https://beta.vndb.org/api/kana/"
         self._query = {}
     
 
     def Get(self):
-        r = requests.post(self._api_url + self._type)
+        try :
+            r = requests.post(self._api_url + self._type.value, data=self.Request(), headers={"Content-Type": "application/json"})
+            self._query = {}
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            pretty_print_POST(r.request)
+            print(r.text)
+            self._query = {}
+            raise SystemExit(err)
+        
+        return r.json()
 
     def Filters(self, filters):
         """
@@ -38,7 +67,7 @@ class DbQuery():
         The top-level id field is always selected by default and does not have to be mentioned in this list. 
         """
 
-        self._quey["fields"] = fields
+        self._query["fields"] = fields
         return self
 
     def Sort(self, sort: str):
@@ -49,15 +78,14 @@ class DbQuery():
         self._query["sort"] = sort
         return self
 
-    def Reverse(self, reverse: bool):
+    def Reverse(self):
         """
-        Set to true to sort in descending order
+        Reverse sorting order
         """
-
-        if type(reverse) is bool:
-            self._query["reverse"] = reverse
+        if "reverse" in self._query:
+            self._query["reverse"] = not self._query["reverse"]
         else:
-            raise TypeError("Reverse must be boolean type")
+            self._query["reverse"] = True
 
         return self
 
@@ -132,8 +160,11 @@ class DbQuery():
         return self
 
     def Type(self, qtype: QType):
+        """
+        Set the type of resource you want to query.
+        """
         if type(qtype) is QType:
-            self._type = type
+            self._type = qtype
         else:
             raise TypeError("Qtype must be Qtype type")
         return self
@@ -142,9 +173,12 @@ class DbQuery():
         """
         Return the JSON formatted request send to the API.
         """
-        query = self._query
-        query["filters"] = query["filters"].tolist()
-        return json.dumps(query, sort_keys=True, indent=4)
+        query = copy.deepcopy(self._query)
+
+        if "filters" in query:
+            query["filters"] = query["filters"].tolist()
+
+        return json.dumps(query, sort_keys=True)
 
     def Stats(self):
         """
@@ -154,7 +188,7 @@ class DbQuery():
         return r.json()
 
     def __str__(self):
-        return json.dumps(query, sort_keys=True, indent=4)
+        return self.Request()
 
 class And():
     def __init__(self, *args):
@@ -178,9 +212,6 @@ class And():
     
     def tolist(self):
         return self._list
-
-    def __json__(self):
-        return "lol"
 
 class Or():
     def __init__(self, *args):
