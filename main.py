@@ -1,4 +1,4 @@
-from pyvndbhttp import DbQuery, And, Or, Filter
+from pyvndbhttp import DbQuery, And, Or, Filter, QType
 import json
 
 def main():
@@ -19,8 +19,7 @@ def main():
                     )
                 )
             )
-    print(json.dumps(filters.tolist()))
-    print(api.Sort(True).Results(15))
+    print(api.Filters(filters).Results(5).Type(QType.VN).Request())
     
 
 if __name__ == "__main__":
