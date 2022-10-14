@@ -17,8 +17,8 @@ def main():
     # Get VN that does not have sexual content (g235) and have mutiple endings
     print("Get VN that does not have sexual content (g235) and have mutiple endings")
     filters = And(Filter("tag", "=", "g235"), Filter("tag", "=", "g148"))
-    vns = api.Type(QType.VN).Fields("title").Filters(filters).Get()
-    print(json.dumps(vns))
+    vns2 = api.Type(QType.VN).Fields("title").Filters(filters).Get()
+    print(json.dumps(vns2))
 
     # Release query example
     # Gets title, id and plateforms releases from 2nd result from the VNs query, released either on Blu-ray or Linux, ordered by release date
