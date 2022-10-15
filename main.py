@@ -69,6 +69,13 @@ def main():
 
         if not res["more"]:
             break
+
+    # User list handling
+    # Get Yorhel's top 10 visual novels
+    filters = Filter("label", "=", 7)
+    top = api.List("u2").Fields("id, vote, vn.title").Filters(filters).Sort("vote").Reverse().Results(10).Get()
+    print(json.dumps(top))
+
     
 
 

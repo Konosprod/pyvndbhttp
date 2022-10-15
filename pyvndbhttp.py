@@ -9,6 +9,7 @@ class QType(Enum):
     PRODUCER = "producer"
     CHARACTER = "character"
     STAFF = "staff"
+    ULIST = "ulist"
 
 def pretty_print_POST(req):
     """
@@ -186,6 +187,15 @@ class VNDBQuery():
         """
         r = requests.get(self._api_url + "stats")
         return r.json()
+
+    def List(self, userid: str):
+
+        if type(userid) is str:
+            self._query["user"] = userid
+            self._type = QType.ULIST
+        else:
+            raise TypeError("Userid must be str")
+        return self
 
     def __str__(self):
         return self.Request()
