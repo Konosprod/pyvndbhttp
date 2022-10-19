@@ -41,7 +41,14 @@ class VNDBQuery():
     def Get(self):
         try :
             r = requests.post(self._api_url + self._type.value, data=self.Request(), headers={"Content-Type": "application/json"})
+            self._prev_query = copy.deepcopy(self._query)
             self._query = {}
+            if r.json()["more"]:
+                self._has_pagination = True
+                self._page = 1
+            else:
+                self._has_pagination = False
+
             r.raise_for_status()
         except requests.exceptions.HTTPError as err:
             pretty_print_POST(r.request)
@@ -203,6 +210,37 @@ class VNDBQuery():
         filter = Filter("search", "=", query)
         self.Filters(filter)
         return self
+
+    def Next(self):
+        if self._has_pagination:
+            try :
+                self._prev_query["page"] = self._page
+                q = copy.deepcopy(self._prev_query)
+
+                if "filters" in self._prev_query:
+                    q["filters"] = q["filters"].tolist()
+
+                r = requests.post(self._api_url + self._type.value, data=json.dumps(q), headers={"Content-Type": "application/json"})
+                r.raise_for_status()
+                self._query = {}
+
+                if r.json()["more"]:
+                    self._has_pagination = True
+                    self._page += 1
+                else:
+                    self._has_pagination = False
+                    self._page = 1
+
+                
+            except requests.exceptions.HTTPError as err:
+                pretty_print_POST(r.request)
+                print(r.text)
+                self._query = {}
+                raise SystemExit(err)
+            
+            return r.json()
+        else:
+            return None
     
     def __str__(self):
         return self.Request()

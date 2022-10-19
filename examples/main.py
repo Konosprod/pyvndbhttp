@@ -65,7 +65,7 @@ def main():
     print(json.dumps(traits))
     print("---------------------")
 
-    # Pagination handling
+    # Manual pagination handling
     # Goes through all character that has an unknown sex, 2 by 2.
     print("Goes through all character that has an unknown sex, 2 by 2.")
     filters = Filter("sex", "=", "unknown")
@@ -81,6 +81,18 @@ def main():
 
         if not res["more"]:
             break
+    print("---------------------")
+
+    # Same pagination with Next() feature
+    print("Goes through all character that has an unknown sex, 2 by 2.")
+    filters = Filter("sex", "=", "unknown")
+    res = api.Type(QType.CHARACTER).Filters(filters).Fields("id, name").Results(2).Get()
+    char = []
+    while res is not None:
+        print(json.dumps(res))
+        char.extend(res["results"])
+        res = api.Next()
+    print(char)
     print("---------------------")
 
     # User list handling
