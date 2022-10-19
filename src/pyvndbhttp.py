@@ -10,6 +10,8 @@ class QType(Enum):
     CHARACTER = "character"
     STAFF = "staff"
     ULIST = "ulist"
+    TAG = "tag"
+    TRAIT = "trait"
 
 def pretty_print_POST(req):
     """
@@ -197,6 +199,11 @@ class VNDBQuery():
             raise TypeError("Userid must be str")
         return self
 
+    def Search(self, query):
+        filter = Filter("search", "=", query)
+        self.Filters(filter)
+        return self
+    
     def __str__(self):
         return self.Request()
 
